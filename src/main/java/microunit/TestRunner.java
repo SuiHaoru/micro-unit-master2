@@ -1,5 +1,8 @@
 package microunit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -9,7 +12,7 @@ import java.util.List;
  * Abstract base class for classes for running unit tests.
  */
 public abstract class TestRunner {
-
+    public Logger log = LogManager.getLogger();
     protected Class<?> testClass;
 
     /**
@@ -42,14 +45,16 @@ public abstract class TestRunner {
      */
     public void runTestMethods() {
         try {
+            log.trace("testing starts");
             TestResultAccumulator accumulator = new CountingTestResultAccumulator();
             for (Method method : getAnnotatedMethods(Test.class)) {
-                System.out.println(method);
+            log.debug("The method {} is being tested",method.getName());
                 Object instance = testClass.getConstructor().newInstance();
                 invokeTestMethod(method, instance, accumulator);
             }
-            System.out.println(accumulator);
+            log.info("Testing results: {}", accumulator);
         } catch (ReflectiveOperationException | IllegalArgumentException e) {
+            log.error("something unexpected happen!");
             throw new InvalidTestClassException(e);
         }
     }
@@ -65,5 +70,4 @@ public abstract class TestRunner {
      */
     protected abstract void invokeTestMethod(Method testMethod, Object instance,
         TestResultAccumulator accumulator) throws IllegalAccessException;
-
 }
